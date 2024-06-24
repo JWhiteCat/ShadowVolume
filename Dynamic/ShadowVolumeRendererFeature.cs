@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_2019_3_OR_NEWER
@@ -30,7 +31,7 @@ namespace ShadowVolume
             public float farExtrusionDistance = 100.0f;
 
             [Range(0.0f, 1.0f)] [Tooltip(Docs.Tooltip.ShadowIntensity)]
-            public float shadowIntensity = 1.0f;
+            public float shadowIntensity = 0.72f;
 
             [Tooltip(Docs.Tooltip.ShadeMode)] public ShadeMode shadeMode = ShadeMode.MultiplySceneAfterOpaque;
 
@@ -58,6 +59,11 @@ namespace ShadowVolume
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            if (renderingData.cameraData.renderType != CameraRenderType.Base)
+            {
+                return;
+            }
+
             if (!settings.enabled || renderingData.lightData.mainLightIndex == -1 || !stencilBufferSupported)
             {
                 return;

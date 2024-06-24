@@ -408,7 +408,7 @@ public class ShadowVolumeSetting : EditorWindow
 
     private void OnGUI_Config()
     {
-        mainCam = EditorGUILayout.ObjectField("Camera", mainCam, typeof(Camera), true) as Camera;
+        // mainCam = EditorGUILayout.ObjectField("Camera", mainCam, typeof(Camera), true) as Camera;
 
         groundLayer = EditorGUILayout.LayerField("Ground Layer", groundLayer);
         shadowVolumeTag = EditorGUILayout.TagField("Shadow Volume Tag", shadowVolumeTag);
@@ -569,11 +569,11 @@ public class ShadowVolumeSetting : EditorWindow
 
     private bool CheckingBeforeBaking()
     {
-        if (mainCam == null)
-        {
-            ShowNotification("Set Camera");
-            return false;
-        }
+        // if (mainCam == null)
+        // {
+        //     ShowNotification("Set Camera");
+        //     return false;
+        // }
 
         if (groundLayer == 0)
         {
@@ -602,10 +602,21 @@ public class ShadowVolumeSetting : EditorWindow
             return;
         }
 
-        GameObject[] gos = GameObject.FindGameObjectsWithTag(shadowVolumeTag);
+        // 获取场景中的所有GameObject
+        UnityEngine.Object[] objects = GameObject.FindObjectsOfType(typeof(GameObject));
+
+        // 创建一个GameObject数组，大小与Object数组相同
+        GameObject[] gos = new GameObject[objects.Length];
+
+        // 将Object数组中的每个元素转换为GameObject并存储到gos数组中
+        for (int i = 0; i < objects.Length; i++)
+        {
+            gos[i] = (GameObject)objects[i];
+        }
+
         if (gos == null || gos.Length == 0)
         {
-            ShowNotification("There is not any GameObject with tag " + shadowVolumeTag);
+            ShowNotification("There is not any GameObject");
         }
         else
         {
@@ -616,12 +627,18 @@ public class ShadowVolumeSetting : EditorWindow
 
             foreach (var go in gos)
             {
-                if (go == null)
+                if (go != null)
                 {
-                    continue;
+                    MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
+                    if (meshRenderer != null)
+                    {
+                        if (meshRenderer.shadowCastingMode is UnityEngine.Rendering.ShadowCastingMode.On
+                            or UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                        {
+                            BakeAGameObject(go);
+                        }
+                    }
                 }
-
-                BakeAGameObject(go);
             }
         }
     }
@@ -718,11 +735,11 @@ public class ShadowVolumeSetting : EditorWindow
             return;
         }
 
-        if (!mf.sharedMesh.isReadable)
-        {
-            Debug.LogError("Skip a Shadow Volume Baking, becase of Mesh is not readable. " + go.name, go);
-            return;
-        }
+        // if (!mf.sharedMesh.isReadable)
+        // {
+        //     Debug.LogError("Skip a Shadow Volume Baking, becase of Mesh is not readable. " + go.name, go);
+        //     return;
+        // }
 
         Transform transform = go.transform;
 
