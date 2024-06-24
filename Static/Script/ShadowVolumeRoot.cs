@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class ShadowVolumeRoot : MonoBehaviour
 {
-    [SerializeField]
-    public Material debugMtrl = null;
+    [SerializeField] public Material debugMtrl = null;
+
     public Material DebugMaterial
     {
         get
         {
-            if(debugMtrl == null)
+            if (debugMtrl == null)
             {
-                debugMtrl = new Material(Shader.Find("Hidden/ShadowVolume/Debug"));
+                debugMtrl = new Material(Shader.Find("ShadowVolume/VolumeStencilOnly"));
             }
+
             return debugMtrl;
         }
     }

@@ -22,6 +22,7 @@ public class ShadowVolumeSetting : EditorWindow
             s_instance.minSize = new Vector2(440, 330);
             s_instance.maxSize = new Vector2(440, 330);
         }
+
         s_instance.ShowUtility();
     }
 
@@ -91,8 +92,9 @@ public class ShadowVolumeSetting : EditorWindow
     {
         if (bakingTaskManager.IsBusy)
         {
-            bool isCancelled = EditorUtility.DisplayCancelableProgressBar("Baking Shadow Volume", string.Empty, bakingTaskManager.ProgressValue);
-            if(isCancelled)
+            bool isCancelled = EditorUtility.DisplayCancelableProgressBar("Baking Shadow Volume", string.Empty,
+                bakingTaskManager.ProgressValue);
+            if (isCancelled)
             {
                 bakingTaskManager.StopAllTasks();
                 ReleaseMemory();
@@ -106,7 +108,7 @@ public class ShadowVolumeSetting : EditorWindow
         bakingTaskManager.Update();
 
         ABakingTask completeTask = bakingTaskManager.PopCompleteTask();
-        if(completeTask != null)
+        if (completeTask != null)
         {
             CreateShadowVolume(completeTask);
             ShadowVolumeCameraDraw();
@@ -117,7 +119,7 @@ public class ShadowVolumeSetting : EditorWindow
     private void CombineAllShadowVolumesIntoOne()
     {
         ShadowVolumeObject[] svObjs = FindObjectsOfType<ShadowVolumeObject>();
-        if(svObjs == null || svObjs.Length == 0)
+        if (svObjs == null || svObjs.Length == 0)
         {
             ShowNotification("Nothing to be combined");
             return;
@@ -129,13 +131,13 @@ public class ShadowVolumeSetting : EditorWindow
         List<Vector3> combinedVertices = new List<Vector3>();
         List<int> combinedTriangles = new List<int>();
         int index = 0;
-        foreach(var svObj in svObjs)
+        foreach (var svObj in svObjs)
         {
             ++index;
 
             Matrix4x4 l2w = svObj.transform.localToWorldMatrix;
             MeshFilter mf = svObj.GetComponent<MeshFilter>();
-            if(mf == null || mf.sharedMesh == null)
+            if (mf == null || mf.sharedMesh == null)
             {
                 Debug.LogError("Skip a Shadow Volume as Combining. " + svObj.gameObject.name, svObj.gameObject);
                 continue;
@@ -157,11 +159,12 @@ public class ShadowVolumeSetting : EditorWindow
             int numVertices = vertices.Length;
             int trianglesLength = triangles.Length;
             int trianglesOffset = combinedVertices.Count;
-            for(int i = 0; i < numVertices; ++i)
+            for (int i = 0; i < numVertices; ++i)
             {
                 vertices[i] = l2w.MultiplyPoint(vertices[i]);
             }
-            for(int i = 0; i < trianglesLength; ++i)
+
+            for (int i = 0; i < trianglesLength; ++i)
             {
                 triangles[i] += trianglesOffset;
             }
@@ -169,9 +172,10 @@ public class ShadowVolumeSetting : EditorWindow
             combinedVertices.AddRange(vertices);
             combinedTriangles.AddRange(triangles);
         }
+
         combinedMeshes.Add(CreateCombinedMesh(combinedVertices, combinedTriangles));
 
-        foreach(var combinedMesh in combinedMeshes)
+        foreach (var combinedMesh in combinedMeshes)
         {
             GameObject combinedGo = new GameObject("_$SV Combined$_");
             combinedGo.transform.parent = GetRoot();
@@ -184,9 +188,7 @@ public class ShadowVolumeSetting : EditorWindow
 
             MeshRenderer combinedMR = combinedGo.AddComponent<MeshRenderer>();
             combinedMR.sharedMaterial = GetDebugMaterial();
-            combinedMR.enabled = false;
-
-            combinedGo.AddComponent<ShadowVolumeCombined>();
+            combinedMR.enabled = true;
         }
 
         foreach (var svObj in svObjs)
@@ -199,21 +201,21 @@ public class ShadowVolumeSetting : EditorWindow
 
     private void GotoSVO()
     {
-        if(Selection.activeGameObject == null)
+        if (Selection.activeGameObject == null)
         {
             ShowNotification("Please Select a GameObject");
         }
         else
         {
             ShadowVolumeObject svo = FindShadowVolumeObject(Selection.activeGameObject);
-            if(svo != null)
+            if (svo != null)
             {
                 Selection.activeGameObject = svo.gameObject;
             }
             else
             {
                 svo = Selection.activeGameObject.GetComponent<ShadowVolumeObject>();
-                if(svo != null)
+                if (svo != null)
                 {
                     Selection.activeGameObject = svo.source;
                 }
@@ -230,30 +232,33 @@ public class ShadowVolumeSetting : EditorWindow
         else
         {
             ShadowVolumeObject svo = FindShadowVolumeObject(Selection.activeGameObject);
-            if(svo == null)
+            if (svo == null)
             {
                 svo = Selection.activeGameObject.GetComponent<ShadowVolumeObject>();
             }
-            if(svo == null)
+
+            if (svo == null)
             {
                 ShowNotification("Cannot find Shadow Volume Object");
                 return;
             }
 
             MeshFilter mf = svo.GetComponent<MeshFilter>();
-            if(mf == null || mf.sharedMesh == null)
+            if (mf == null || mf.sharedMesh == null)
             {
                 ShowNotification("Cannot find Shadow Volume Mesh");
                 return;
             }
-            if(!mf.sharedMesh.isReadable)
+
+            if (!mf.sharedMesh.isReadable)
             {
                 ShowNotification("Shadow Volume Mesh is not readable");
                 return;
             }
 
-            string savePath = EditorUtility.SaveFilePanelInProject("Export Shadow Volume Mesh", mf.sharedMesh.name, "obj", string.Empty);
-            if(string.IsNullOrEmpty(savePath))
+            string savePath = EditorUtility.SaveFilePanelInProject("Export Shadow Volume Mesh", mf.sharedMesh.name,
+                "obj", string.Empty);
+            if (string.IsNullOrEmpty(savePath))
             {
                 return;
             }
@@ -278,7 +283,7 @@ public class ShadowVolumeSetting : EditorWindow
     private void DeleteCombinedShadowVolume()
     {
         ShadowVolumeCombined[] svCombinedList = FindObjectsOfType<ShadowVolumeCombined>();
-        foreach(var item in svCombinedList)
+        foreach (var item in svCombinedList)
         {
             DestroyImmediate(item.gameObject);
         }
@@ -302,14 +307,14 @@ public class ShadowVolumeSetting : EditorWindow
             mf.sharedMesh = completeBakingTask.GetNewMesh();
             MeshRenderer mr = newMeshGo.AddComponent<MeshRenderer>();
             mr.sharedMaterial = debugMtrl;
-            mr.enabled = false;
+            mr.enabled = true;
 
             svObj = newMeshGo.AddComponent<ShadowVolumeObject>();
             svObj.source = completeBakingTask.Transform.gameObject;
             svObj.sourceMeshRenderer = completeBakingTask.Transform.GetComponent<MeshRenderer>();
             svObj.sourceMeshFilter = completeBakingTask.Transform.GetComponent<MeshFilter>();
             svObj.meshFilter = mf;
-			svObj.l2w = mf.transform.localToWorldMatrix;
+            svObj.l2w = mf.transform.localToWorldMatrix;
         }
         else
         {
@@ -318,13 +323,14 @@ public class ShadowVolumeSetting : EditorWindow
             svObj.transform.localEulerAngles = completeBakingTask.Transform.eulerAngles;
             svObj.transform.localPosition = completeBakingTask.Transform.position;
 
-			svObj.l2w = svObj.meshFilter.transform.localToWorldMatrix;
+            svObj.l2w = svObj.meshFilter.transform.localToWorldMatrix;
 
             MeshFilter mf = svObj.gameObject.GetComponent<MeshFilter>();
             if (mf == null)
             {
                 mf = svObj.gameObject.AddComponent<MeshFilter>();
             }
+
             mf.sharedMesh = completeBakingTask.GetNewMesh();
 
             MeshRenderer mr = svObj.gameObject.GetComponent<MeshRenderer>();
@@ -332,8 +338,9 @@ public class ShadowVolumeSetting : EditorWindow
             {
                 mr = svObj.gameObject.AddComponent<MeshRenderer>();
             }
+
             mr.sharedMaterial = debugMtrl;
-            mr.enabled = false;
+            mr.enabled = true;
         }
     }
 
@@ -352,7 +359,7 @@ public class ShadowVolumeSetting : EditorWindow
 
     private void SetupMainCam()
     {
-        if(Camera.main != null)
+        if (Camera.main != null)
         {
             mainCam = Camera.main;
         }
@@ -360,10 +367,10 @@ public class ShadowVolumeSetting : EditorWindow
 
     private void CreateShadowVolumeCamera()
     {
-        if(mainCam != null)
+        if (mainCam != null)
         {
             ShadowVolumeCamera svc = mainCam.GetComponent<ShadowVolumeCamera>();
-            if(svc == null)
+            if (svc == null)
             {
                 mainCam.gameObject.AddComponent<ShadowVolumeCamera>();
             }
@@ -372,7 +379,7 @@ public class ShadowVolumeSetting : EditorWindow
 
     private void DestroyShadowVolumeCamera()
     {
-        if(mainCam != null)
+        if (mainCam != null)
         {
             ShadowVolumeCamera svc = mainCam.GetComponent<ShadowVolumeCamera>();
             if (svc != null)
@@ -426,7 +433,7 @@ public class ShadowVolumeSetting : EditorWindow
             BeginGUIColor(Color.red);
             bool clearBakedData_b = GUILayout.Button("Clear Baked Data");
             EndGUIColor();
-            if(clearBakedData_b)
+            if (clearBakedData_b)
             {
                 bool b = EditorUtility.DisplayDialog(string.Empty, "Clear Baked Data?", "YES", "NO");
                 if (b)
@@ -447,7 +454,7 @@ public class ShadowVolumeSetting : EditorWindow
             BeginGUIColor(new Color(0.75f, 0, 0, 1));
             bool clearSelected_b = GUILayout.Button("Clear Selected");
             EndGUIColor();
-            if(clearSelected_b)
+            if (clearSelected_b)
             {
                 ClearSelected();
                 ShadowVolumeCameraDraw();
@@ -458,9 +465,10 @@ public class ShadowVolumeSetting : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
         {
-            if(GUILayout.Button("Combine Into One"))
+            if (GUILayout.Button("Combine Into One"))
             {
-                bool b = EditorUtility.DisplayDialog(string.Empty, "Are you sure combine all shadow volume meshes into one?", "YES", "NO");
+                bool b = EditorUtility.DisplayDialog(string.Empty,
+                    "Are you sure combine all shadow volume meshes into one?", "YES", "NO");
                 if (b)
                 {
                     CombineAllShadowVolumesIntoOne();
@@ -484,7 +492,7 @@ public class ShadowVolumeSetting : EditorWindow
             BeginGUIColor(new Color(0, 0.75f, 0, 1));
             bool gotoSVO_b = GUILayout.Button("Goto SVO");
             EndGUIColor();
-            if(gotoSVO_b)
+            if (gotoSVO_b)
             {
                 GotoSVO();
             }
@@ -524,7 +532,7 @@ public class ShadowVolumeSetting : EditorWindow
                     // RenderTexture Composite
                     EditorGUI.BeginChangeCheck();
                     svc.isRenderTextureComposite = EditorGUILayout.Toggle("RT Composite", svc.isRenderTextureComposite);
-                    if(EditorGUI.EndChangeCheck())
+                    if (EditorGUI.EndChangeCheck())
                     {
                         ShadowVolumeCamera.DrawAllCameras_Editor();
                         RefreshSceneViews();
@@ -534,22 +542,23 @@ public class ShadowVolumeSetting : EditorWindow
                     // anti-aliasing
                     EditorGUI.BeginChangeCheck();
                     svc.anti_aliasing = EditorGUILayout.Toggle("Anti-Aliasing", svc.anti_aliasing);
-                    if(EditorGUI.EndChangeCheck())
+                    if (EditorGUI.EndChangeCheck())
                     {
                         ShadowVolumeCamera.DrawAllCameras_Editor();
                         RefreshSceneViews();
                         MarkSceneAsDirty();
                     }
 
-					// Lock Root
-					EditorGUI.BeginChangeCheck();
-					Transform root = GetRoot();
-					bool svvb = root.gameObject.hideFlags == HideFlags.None;
+                    // Lock Root
+                    EditorGUI.BeginChangeCheck();
+                    Transform root = GetRoot();
+                    bool svvb = root.gameObject.hideFlags == HideFlags.None;
                     svvb = !EditorGUILayout.Toggle("Lock Root", !svvb);
-                    if(EditorGUI.EndChangeCheck())
+                    if (EditorGUI.EndChangeCheck())
                     {
                         Selection.activeGameObject = null;
-                        root.gameObject.hideFlags = svvb ? HideFlags.None : HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+                        root.gameObject.hideFlags =
+                            svvb ? HideFlags.None : HideFlags.HideInHierarchy | HideFlags.HideInInspector;
                         MarkSceneAsDirty();
                     }
                 }
@@ -560,21 +569,24 @@ public class ShadowVolumeSetting : EditorWindow
 
     private bool CheckingBeforeBaking()
     {
-        if(mainCam == null)
+        if (mainCam == null)
         {
             ShowNotification("Set Camera");
             return false;
         }
-        if(groundLayer == 0)
+
+        if (groundLayer == 0)
         {
             ShowNotification("Set Ground Layer");
             return false;
         }
-        if(dirLight == null)
+
+        if (dirLight == null)
         {
             ShowNotification("Set Directional Light");
             return false;
         }
+
         return true;
     }
 
@@ -591,18 +603,18 @@ public class ShadowVolumeSetting : EditorWindow
         }
 
         GameObject[] gos = GameObject.FindGameObjectsWithTag(shadowVolumeTag);
-        if(gos == null || gos.Length == 0)
+        if (gos == null || gos.Length == 0)
         {
             ShowNotification("There is not any GameObject with tag " + shadowVolumeTag);
         }
         else
         {
-            CreateShadowVolumeCamera();
+            // CreateShadowVolumeCamera();
             DeleteCombinedShadowVolume();
             DeleteOldShadowVolumes();
             bakingTaskManager.Init();
 
-            foreach(var go in gos)
+            foreach (var go in gos)
             {
                 if (go == null)
                 {
@@ -623,14 +635,15 @@ public class ShadowVolumeSetting : EditorWindow
         }
         else
         {
-            foreach(var selectedGo in selectedGos)
+            foreach (var selectedGo in selectedGos)
             {
                 ShadowVolumeObject svObj = FindShadowVolumeObject(selectedGo);
-                if(svObj == null)
+                if (svObj == null)
                 {
                     svObj = selectedGo.GetComponent<ShadowVolumeObject>();
                 }
-                if(svObj != null)
+
+                if (svObj != null)
                 {
                     DestroyImmediate(svObj.gameObject);
                 }
@@ -640,7 +653,7 @@ public class ShadowVolumeSetting : EditorWindow
 
     private void BakeSelected()
     {
-        if(!CheckingBeforeBaking())
+        if (!CheckingBeforeBaking())
         {
             return;
         }
@@ -663,6 +676,7 @@ public class ShadowVolumeSetting : EditorWindow
                 {
                     continue;
                 }
+
                 BakeAGameObject(selectedGo);
             }
         }
@@ -679,7 +693,7 @@ public class ShadowVolumeSetting : EditorWindow
     private void BakeAGameObject(GameObject go)
     {
         ShadowVolumeObject svo = go.GetComponent<ShadowVolumeObject>();
-        if(svo != null)
+        if (svo != null)
         {
             go = svo.source;
         }
@@ -692,17 +706,19 @@ public class ShadowVolumeSetting : EditorWindow
         }
 
         MeshFilter mf = go.GetComponent<MeshFilter>();
-        if(mf == null)
+        if (mf == null)
         {
             Debug.LogError("Skip a Shadow Volume Baking, becase of there is no MeshFilter. " + go.name, go);
             return;
         }
-        if(mf.sharedMesh == null)
+
+        if (mf.sharedMesh == null)
         {
             Debug.LogError("Skip a Shadow Volume Baking, becase of there is no Mesh. " + go.name, go);
             return;
         }
-        if(!mf.sharedMesh.isReadable)
+
+        if (!mf.sharedMesh.isReadable)
         {
             Debug.LogError("Skip a Shadow Volume Baking, becase of Mesh is not readable. " + go.name, go);
             return;
@@ -711,31 +727,34 @@ public class ShadowVolumeSetting : EditorWindow
         Transform transform = go.transform;
 
         ABakingTask task = new ABakingTask();
-        task.Init(transform, transform.localToWorldMatrix, transform.worldToLocalMatrix, dirLight.transform.forward, mf.sharedMesh, capsOffset, groundLayer, twoSubMeshes);
+        task.Init(transform, transform.localToWorldMatrix, transform.worldToLocalMatrix, dirLight.transform.forward,
+            mf.sharedMesh, capsOffset, groundLayer, twoSubMeshes);
         bakingTaskManager.AddTask(task);
     }
 
     private ShadowVolumeObject FindShadowVolumeObject(GameObject source)
     {
         ShadowVolumeObject[] objs = FindObjectsOfType<ShadowVolumeObject>();
-        if(objs == null)
+        if (objs == null)
         {
             return null;
         }
-        foreach(var obj in objs)
+
+        foreach (var obj in objs)
         {
-            if(obj.source == source)
+            if (obj.source == source)
             {
                 return obj;
             }
         }
+
         return null;
     }
 
     private Transform GetRoot()
     {
         ShadowVolumeRoot root = FindObjectOfType<ShadowVolumeRoot>();
-        if(root == null)
+        if (root == null)
         {
             GameObject rootGo = new GameObject("_$ShadowVolumeRoot$_");
             rootGo.transform.parent = null;
@@ -768,9 +787,9 @@ public class ShadowVolumeSetting : EditorWindow
     private void DeleteOldShadowVolumes()
     {
         ShadowVolumeObject[] objs = FindObjectsOfType<ShadowVolumeObject>();
-        if(objs != null)
+        if (objs != null)
         {
-            foreach(var obj in objs)
+            foreach (var obj in objs)
             {
                 if (obj.source == null)
                 {
@@ -793,11 +812,13 @@ public class ShadowVolumeSetting : EditorWindow
     }
 
     private Color tempGUIColor = Color.white;
+
     private void BeginGUIColor(Color c)
     {
         tempGUIColor = GUI.color;
         GUI.color = c;
     }
+
     private void EndGUIColor()
     {
         GUI.color = tempGUIColor;
@@ -807,10 +828,7 @@ public class ShadowVolumeSetting : EditorWindow
     {
         public bool IsBusy
         {
-            get
-            {
-                return idleTasks.Count > 0 || workingTasks.Count > 0;
-            }
+            get { return idleTasks.Count > 0 || workingTasks.Count > 0; }
         }
 
         public float ProgressValue
@@ -818,7 +836,7 @@ public class ShadowVolumeSetting : EditorWindow
             get
             {
                 int totalAmount = totalTasks.Count;
-                if(totalAmount == 0)
+                if (totalAmount == 0)
                 {
                     return 0;
                 }
@@ -851,12 +869,13 @@ public class ShadowVolumeSetting : EditorWindow
 
                 return task;
             }
+
             return null;
         }
 
         public void Init()
         {
-            if(IsBusy)
+            if (IsBusy)
             {
                 Debug.LogError("BakingTaskManager Init Failed.");
                 return;
@@ -874,10 +893,10 @@ public class ShadowVolumeSetting : EditorWindow
         public void Update()
         {
             int numWorkingTasks = workingTasks.Count;
-            for(int i = 0; i < numWorkingTasks; ++i)
+            for (int i = 0; i < numWorkingTasks; ++i)
             {
                 ABakingTask task = workingTasks[i];
-                if(task.IsComplete)
+                if (task.IsComplete)
                 {
                     completeTasks.Add(task);
                     workingTasks.RemoveAt(i);
@@ -886,7 +905,7 @@ public class ShadowVolumeSetting : EditorWindow
                 }
             }
 
-            if(workingTasks.Count < concurrentTasks && idleTasks.Count > 0)
+            if (workingTasks.Count < concurrentTasks && idleTasks.Count > 0)
             {
                 ABakingTask idleTask = idleTasks[idleTasks.Count - 1];
                 idleTasks.RemoveAt(idleTasks.Count - 1);
@@ -912,7 +931,7 @@ public class ShadowVolumeSetting : EditorWindow
 
         private void DestroyTasks(List<ABakingTask> tasks)
         {
-            foreach(var aTask in tasks)
+            foreach (var aTask in tasks)
             {
                 aTask.Destroy();
             }
@@ -922,37 +941,24 @@ public class ShadowVolumeSetting : EditorWindow
     private class ABakingTask
     {
         private volatile bool _isComplete = false;
+
         public bool IsComplete
         {
-            private set
-            {
-                _isComplete = value;
-            }
-            get
-            {
-                return _isComplete;
-            }
+            private set { _isComplete = value; }
+            get { return _isComplete; }
         }
 
         private volatile bool _isWorking = false;
+
         public bool IsWorking
         {
-            private set
-            {
-                _isWorking = value;
-            }
-            get
-            {
-                return _isWorking;
-            }
+            private set { _isWorking = value; }
+            get { return _isWorking; }
         }
 
         public Transform Transform
         {
-            get
-            {
-                return transform;
-            }
+            get { return transform; }
         }
 
         private Transform transform = null;
@@ -983,7 +989,7 @@ public class ShadowVolumeSetting : EditorWindow
 
         public Mesh GetNewMesh()
         {
-            if(!IsComplete)
+            if (!IsComplete)
             {
                 return null;
             }
@@ -991,7 +997,7 @@ public class ShadowVolumeSetting : EditorWindow
             Mesh newMesh = new Mesh();
             newMesh.name = "Shadow Volume " + mesh.name;
             newMesh.vertices = newVertices;
-            if(twoSubMeshes)
+            if (twoSubMeshes)
             {
                 // 2 SubMeshes
                 newMesh.subMeshCount = 2;
@@ -1008,11 +1014,13 @@ public class ShadowVolumeSetting : EditorWindow
                 newMesh.vertices = newVertices;
                 newMesh.triangles = combinedTriangles;
             }
+
             newMesh.RecalculateBounds();
             return newMesh;
         }
 
-        public void Init(Transform transform, Matrix4x4 l2w, Matrix4x4 w2l, Vector3 wLightDir, Mesh mesh, float svoffset, int groundLayer, bool twoSubMeshes)
+        public void Init(Transform transform, Matrix4x4 l2w, Matrix4x4 w2l, Vector3 wLightDir, Mesh mesh,
+            float svoffset, int groundLayer, bool twoSubMeshes)
         {
             this.transform = transform;
             this.l2w = l2w;
@@ -1029,7 +1037,7 @@ public class ShadowVolumeSetting : EditorWindow
 
         public void Start()
         {
-            if(thread != null)
+            if (thread != null)
             {
                 return;
             }
@@ -1047,16 +1055,17 @@ public class ShadowVolumeSetting : EditorWindow
         {
             IsWorking = false;
 
-            if(thread != null)
+            if (thread != null)
             {
                 try
                 {
                     thread.Abort();
                 }
-                catch(System.Exception e)
+                catch (System.Exception e)
                 {
                     // Do nothing
                 }
+
                 thread = null;
             }
         }
@@ -1099,7 +1108,11 @@ public class ShadowVolumeSetting : EditorWindow
                 n = Vector3Normalize(n);
                 bool valid = Vector3.Dot(n, oLightDir) > 0;
 
-                trianglesGroundData[i / 3] = new Triangle() { p0 = PointHitOnGround(p0), p1 = PointHitOnGround(p1), p2 = PointHitOnGround(p2), n = n, valid = valid };
+                trianglesGroundData[i / 3] = new Triangle()
+                {
+                    p0 = PointHitOnGround(p0), p1 = PointHitOnGround(p1), p2 = PointHitOnGround(p2), n = n,
+                    valid = valid
+                };
                 if (Mathf.Approximately(n.magnitude, 0.0f))
                 {
                     Debug.LogError("Error: Normal is Zero.");
@@ -1240,9 +1253,11 @@ public class ShadowVolumeSetting : EditorWindow
                 newTriangles[tiList[tiIndex++]] = vi4;
                 newTriangles[tiList[tiIndex++]] = vi1;
 
-                trisLines.Add(new TriangleAndLine() { i0 = vi0, i1 = vi3, i2 = vi4, v0 = newVertices[vi0], v1 = newVertices[vi1], id = ++triLineId });
+                trisLines.Add(new TriangleAndLine()
+                    { i0 = vi0, i1 = vi3, i2 = vi4, v0 = newVertices[vi0], v1 = newVertices[vi1], id = ++triLineId });
                 trisLinesMap.Add(vi0 * TLMS2 + vi3 * TLMS + vi4, trisLines.Count - 1);
-                trisLines.Add(new TriangleAndLine() { i0 = vi0, i1 = vi4, i2 = vi1, v0 = newVertices[vi0], v1 = newVertices[vi1], id = triLineId });
+                trisLines.Add(new TriangleAndLine()
+                    { i0 = vi0, i1 = vi4, i2 = vi1, v0 = newVertices[vi0], v1 = newVertices[vi1], id = triLineId });
                 trisLinesMap.Add(vi0 * TLMS2 + vi4 * TLMS + vi1, trisLines.Count - 1);
 
                 newTriangles[tiList[tiIndex++]] = vi1;
@@ -1252,9 +1267,11 @@ public class ShadowVolumeSetting : EditorWindow
                 newTriangles[tiList[tiIndex++]] = vi5;
                 newTriangles[tiList[tiIndex++]] = vi2;
 
-                trisLines.Add(new TriangleAndLine() { i0 = vi1, i1 = vi4, i2 = vi5, v0 = newVertices[vi1], v1 = newVertices[vi2], id = ++triLineId });
+                trisLines.Add(new TriangleAndLine()
+                    { i0 = vi1, i1 = vi4, i2 = vi5, v0 = newVertices[vi1], v1 = newVertices[vi2], id = ++triLineId });
                 trisLinesMap.Add(vi1 * TLMS2 + vi4 * TLMS + vi5, trisLines.Count - 1);
-                trisLines.Add(new TriangleAndLine() { i0 = vi1, i1 = vi5, i2 = vi2, v0 = newVertices[vi1], v1 = newVertices[vi2], id = triLineId });
+                trisLines.Add(new TriangleAndLine()
+                    { i0 = vi1, i1 = vi5, i2 = vi2, v0 = newVertices[vi1], v1 = newVertices[vi2], id = triLineId });
                 trisLinesMap.Add(vi1 * TLMS2 + vi5 * TLMS + vi2, trisLines.Count - 1);
 
                 newTriangles[tiList[tiIndex++]] = vi2;
@@ -1264,9 +1281,11 @@ public class ShadowVolumeSetting : EditorWindow
                 newTriangles[tiList[tiIndex++]] = vi3;
                 newTriangles[tiList[tiIndex++]] = vi0;
 
-                trisLines.Add(new TriangleAndLine() { i0 = vi2, i1 = vi5, i2 = vi3, v0 = newVertices[vi2], v1 = newVertices[vi0], id = ++triLineId });
+                trisLines.Add(new TriangleAndLine()
+                    { i0 = vi2, i1 = vi5, i2 = vi3, v0 = newVertices[vi2], v1 = newVertices[vi0], id = ++triLineId });
                 trisLinesMap.Add(vi2 * TLMS2 + vi5 * TLMS + vi3, trisLines.Count - 1);
-                trisLines.Add(new TriangleAndLine() { i0 = vi2, i1 = vi3, i2 = vi0, v0 = newVertices[vi2], v1 = newVertices[vi0], id = triLineId });
+                trisLines.Add(new TriangleAndLine()
+                    { i0 = vi2, i1 = vi3, i2 = vi0, v0 = newVertices[vi2], v1 = newVertices[vi0], id = triLineId });
                 trisLinesMap.Add(vi2 * TLMS2 + vi3 * TLMS + vi0, trisLines.Count - 1);
             }
         }
@@ -1382,6 +1401,7 @@ public class ShadowVolumeSetting : EditorWindow
                                     --triangles0[k];
                                 }
                             }
+
                             for (int k = 0; k < trianglesLength1; ++k)
                             {
                                 if (triangles1[k] >= j)
@@ -1389,6 +1409,7 @@ public class ShadowVolumeSetting : EditorWindow
                                     --triangles1[k];
                                 }
                             }
+
                             --j;
                         }
                     }

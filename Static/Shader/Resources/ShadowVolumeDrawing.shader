@@ -4,43 +4,47 @@
 	{
 	}
 
-	CGINCLUDE
-
-	#include "UnityCG.cginc"
+	HLSLINCLUDE
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 	struct appdata
 	{
 		float4 vertex : POSITION;
 		float2 uv : TEXCOORD0;
+    	UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 
 	struct v2f
 	{
 		float2 uv : TEXCOORD0;
 		float4 vertex : SV_POSITION;
+		UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 	
-	uniform fixed4 _ShadowColor;
+	uniform half4 _ShadowColor;
 	uniform sampler2D _ShadowVolumeRT;
 	uniform sampler2D _ShadowVolumeColorRT;
 
 	v2f vert_sv_stencil (appdata v)
 	{
 		v2f o;
-		UNITY_INITIALIZE_OUTPUT(v2f, o);
-		o.vertex = UnityObjectToClipPos(v.vertex);
+        UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, v);
+		o.vertex = TransformWorldToHClip(v.vertex.xyz);
 		return o;
 	}
 	
-	fixed4 frag_sv_stencil (v2f i) : SV_Target
+	half4 frag_sv_stencil (v2f i) : SV_Target
 	{
-		return fixed4(0,0,0,0);
+		return half4(0,0,0,0);
 	}
 
 	v2f vert_shadow(appdata v)
 	{
 		v2f o;
-		UNITY_INITIALIZE_OUTPUT(v2f, o);
+		UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, v);
 		o.vertex = v.vertex;
 
 		if (_ProjectionParams.x < 0)
@@ -51,7 +55,7 @@
 		return o;
 	}
 
-	fixed4 frag_shadow(v2f i) : SV_Target
+	half4 frag_shadow(v2f i) : SV_Target
 	{
 		return _ShadowColor;
 	}
@@ -59,22 +63,23 @@
 	v2f vert_overlay_shadow (appdata v)
 	{
 		v2f o;
-		UNITY_INITIALIZE_OUTPUT(v2f, o);
-		o.vertex = UnityObjectToClipPos(v.vertex);
+		UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, v);
+		o.vertex = TransformWorldToHClip(v.vertex);
 		o.uv = v.uv;
 		return o;
 	}
 
-	fixed4 frag_overlay_shadow(v2f i) : SV_Target
+	half4 frag_overlay_shadow(v2f i) : SV_Target
 	{
-		fixed4 shadow = tex2D(_ShadowVolumeRT, i.uv);
-		fixed4 color = tex2D(_ShadowVolumeColorRT, i.uv);
+		half4 shadow = tex2D(_ShadowVolumeRT, i.uv);
+		half4 color = tex2D(_ShadowVolumeColorRT, i.uv);
 
 		// Bright dark area in the shadow
 		/*
-		fixed s = shadow.r < 0.8 ? 1 : 0;
+		half s = shadow.r < 0.8 ? 1 : 0;
 
-		fixed gray = (color.r + color.g + color.b) * 0.3333;
+		half gray = (color.r + color.g + color.b) * 0.3333;
 		gray -= 0.4;// dark controller
 		gray = saturate(gray) * s + 1;
 
@@ -83,8 +88,7 @@
 
 		return shadow * color;
 	}
-
-	ENDCG
+    ENDHLSL
 
 	SubShader
 	{
@@ -103,10 +107,11 @@
 			ZWrite Off
 			ColorMask 0
 			Cull Front
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_sv_stencil
 			#pragma fragment frag_sv_stencil
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 		// Pass 1
 		Pass
@@ -119,10 +124,11 @@
 			ZWrite Off
 			ColorMask 0
 			Cull Back
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_sv_stencil
 			#pragma fragment frag_sv_stencil
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 
 
@@ -138,10 +144,10 @@
 		//  	ZWrite Off
 		//  	ColorMask 0
 		//  	Cull Back
-		//  	CGPROGRAM
+		//  	HLSLPROGRAM
 		//  	#pragma vertex vert_sv_stencil
 		//  	#pragma fragment frag_sv_stencil
-		//  	ENDCG
+		//  	ENDHLSL
 		//  }
 		// Pass 1
 		// Pass
@@ -154,10 +160,10 @@
 		//  	ZWrite Off
 		//  	ColorMask 0
 		//  	Cull Front
-		//  	CGPROGRAM
+		//  	HLSLPROGRAM
 		//  	#pragma vertex vert_sv_stencil
 		//  	#pragma fragment frag_sv_stencil
-		//  	ENDCG
+		//  	ENDHLSL
 		// }
 
 
@@ -175,10 +181,11 @@
 			ColorMask RGB
 			Cull Back
 			ZTest Always
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_shadow
 			#pragma fragment frag_shadow
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 
 		// Clear Stencil Buffer
@@ -194,10 +201,11 @@
 			Cull Back
 			ZWrite Off
 			ZTest Always
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_shadow
 			#pragma fragment frag_shadow
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 
 		// Two-Side Stencil
@@ -213,10 +221,11 @@
 			ZWrite Off
 			ColorMask 0
 			Cull Off
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_sv_stencil
 			#pragma fragment frag_sv_stencil
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 
 		// RenderTexture Composite
@@ -228,10 +237,11 @@
 			ColorMask RGB
 			Cull Back
 			ZTest Always
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_overlay_shadow
 			#pragma fragment frag_overlay_shadow
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 
 		// RenderTexture Composite
@@ -248,10 +258,11 @@
 			ColorMask RGB
 			Cull Back
 			ZTest Always
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex vert_shadow
 			#pragma fragment frag_shadow
-			ENDCG
+			#pragma multi_compile_instancing
+			ENDHLSL
 		}
 	}
 }

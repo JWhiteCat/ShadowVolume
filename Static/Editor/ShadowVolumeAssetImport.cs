@@ -8,12 +8,12 @@ public class ShadowVolumeAssetImport : AssetPostprocessor
 {
     void OnPreprocessModel()
     {
-        if(assetPath.ToLower().EndsWith(".obj"))
+        if (assetPath.ToLower().EndsWith(".obj"))
         {
             if (File.ReadAllText(assetPath).Contains(ShadowVolumeSetting.EXPORT_OBJ_COMMENT))
             {
                 ModelImporter modelImporter = assetImporter as ModelImporter;
-                modelImporter.importMaterials = false;
+                modelImporter.materialImportMode = ModelImporterMaterialImportMode.None;
                 modelImporter.importNormals = ModelImporterNormals.None;
             }
         }
