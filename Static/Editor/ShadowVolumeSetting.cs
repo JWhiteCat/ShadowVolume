@@ -12,6 +12,15 @@ public class ShadowVolumeSetting : EditorWindow
 {
     private static ShadowVolumeSetting s_instance = null;
 
+    [MenuItem("项目/一键烘焙静态阴影")]
+    private static void BakeStaticShadow()
+    {
+        AddMeshCollider();
+        ShadowVolumeSetting instance = EditorWindow.GetWindow<ShadowVolumeSetting>();
+        instance.ClearBakedData();
+        instance.BakeAll();
+    }
+
     [MenuItem("Window/Lighting/Shadow Volume Setting")]
     private static void Init()
     {
@@ -113,7 +122,13 @@ public class ShadowVolumeSetting : EditorWindow
         if (completeTask != null)
         {
             CreateShadowVolume(completeTask);
-            ShadowVolumeCameraDraw();
+            // ShadowVolumeCameraDraw();
+        }
+
+        if (bakingTaskManager.workingTasks.Count == 0 && bakingTaskManager.idleTasks.Count == 0)
+        {
+            RemoveMeshCollider();
+            CombineAllShadowVolumesIntoOne();
             MarkSceneAsDirty();
         }
     }
@@ -416,9 +431,9 @@ public class ShadowVolumeSetting : EditorWindow
     {
         // mainCam = EditorGUILayout.ObjectField("Camera", mainCam, typeof(Camera), true) as Camera;
 
-        groundLayer = EditorGUILayout.LayerField("Ground Layer", groundLayer);
+        // groundLayer = EditorGUILayout.LayerField("Ground Layer", groundLayer);
         finalLayer = EditorGUILayout.LayerField("输出mesh的layer", finalLayer);
-        shadowVolumeTag = EditorGUILayout.TagField("Shadow Volume Tag", shadowVolumeTag);
+        // shadowVolumeTag = EditorGUILayout.TagField("Shadow Volume Tag", shadowVolumeTag);
 
         dirLight = EditorGUILayout.ObjectField("Directional Light", dirLight, typeof(Light), true) as Light;
 
@@ -600,6 +615,37 @@ public class ShadowVolumeSetting : EditorWindow
     private void ShowNotification(string txt)
     {
         ShowNotification(new GUIContent(txt));
+    }
+
+    // 给地面添加碰撞体
+    private static void AddMeshCollider()
+    {
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("Ground");
+        foreach (var go in gos)
+        {
+            MeshCollider mc = go.GetComponent<MeshCollider>();
+            if (mc == null)
+            {
+                mc = go.AddComponent<MeshCollider>();
+            }
+
+            mc.sharedMesh = go.GetComponent<MeshFilter>().sharedMesh;
+            mc.convex = false;
+            mc.isTrigger = false;
+        }
+    }
+
+    private static void RemoveMeshCollider()
+    {
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("Ground");
+        foreach (var go in gos)
+        {
+            MeshCollider mc = go.GetComponent<MeshCollider>();
+            if (mc != null)
+            {
+                DestroyImmediate(mc);
+            }
+        }
     }
 
     private void BakeAll()
@@ -871,9 +917,9 @@ public class ShadowVolumeSetting : EditorWindow
             }
         }
 
-        private List<ABakingTask> idleTasks = new List<ABakingTask>();
+        public List<ABakingTask> idleTasks = new List<ABakingTask>();
 
-        private List<ABakingTask> workingTasks = new List<ABakingTask>();
+        public List<ABakingTask> workingTasks = new List<ABakingTask>();
 
         private List<ABakingTask> completeTasks = new List<ABakingTask>();
 
@@ -881,7 +927,7 @@ public class ShadowVolumeSetting : EditorWindow
 
         private List<ABakingTask> popTasks = new List<ABakingTask>();
 
-        private int concurrentTasks = 3;
+        private int concurrentTasks = 10;
 
         public ABakingTask PopCompleteTask()
         {
@@ -1173,7 +1219,7 @@ public class ShadowVolumeSetting : EditorWindow
         {
             RaycastHit hit;
             Ray ray = new Ray(l2w.MultiplyPoint(p), l2w.MultiplyVector(oLightDir));
-            if (Physics.Raycast(ray, out hit, 9999, groundLayer))
+            if (Physics.Raycast(ray, out hit, 9999))
             {
                 return w2l.MultiplyPoint(hit.point) + oLightDir * svoffset;
             }
