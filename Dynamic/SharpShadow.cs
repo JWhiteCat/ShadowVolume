@@ -22,8 +22,7 @@ namespace ShadowVolume
     [ExecuteInEditMode]
     public class SharpShadow : MonoBehaviour
     {
-        [Tooltip(Docs.Tooltip.ShadowAsset)]
-        public ShadowAsset shadowAsset;
+        [Tooltip(Docs.Tooltip.ShadowAsset)] public ShadowAsset shadowAsset;
 
         [Tooltip(Docs.Tooltip.CreateRuntimeShadowAsset)]
         public bool createRuntimeShadowAsset;
@@ -31,7 +30,7 @@ namespace ShadowVolume
         [Tooltip(Docs.Tooltip.RuntimeCreationSettings)]
         public RuntimeCreationSettings runtimeCreationSettings;
 
-        protected ShadowAsset runtimeShadowAsset;
+        public ShadowAsset runtimeShadowAsset;
         protected SkinnedMeshRenderer skinnedRenderer;
 
         public void CreateRuntimeShadowAsset(bool forceUpdate)
@@ -42,6 +41,7 @@ namespace ShadowVolume
                 CleanUpRuntimeShadowAsset();
                 return;
             }
+
             if (runtimeShadowAsset && !forceUpdate)
             {
                 // Runtime asset already exists
@@ -59,15 +59,18 @@ namespace ShadowVolume
             {
                 sourceMesh = meshFilter.sharedMesh;
             }
+
             var skinnedMeshRenderer = transform.parent?.GetComponent<SkinnedMeshRenderer>();
             if (skinnedMeshRenderer)
             {
                 sourceMesh = skinnedMeshRenderer.sharedMesh;
             }
+
             if (!sourceMesh)
             {
                 return;
             }
+
             var asset = ScriptableObject.CreateInstance<ShadowAsset>();
             ShadowMesh.Create(
                 sourceMesh,
@@ -83,6 +86,7 @@ namespace ShadowVolume
             {
                 return;
             }
+
             asset.allowCameraInShadow = runtimeCreationSettings.allowCameraInShadow;
 
             runtimeShadowAsset = asset;
@@ -114,6 +118,7 @@ namespace ShadowVolume
                 {
                     DestroyAlways(runtimeShadowAsset.shadowMesh);
                 }
+
                 DestroyAlways(runtimeShadowAsset);
                 runtimeShadowAsset = null;
             }
@@ -141,7 +146,18 @@ namespace ShadowVolume
             }
 #endif
 
-            SharpShadowManager.instance?.Add(this);
+            if (SharpShadowManager.instance && !SharpShadowManager.instance.Contains(this))
+            {
+                SharpShadowManager.instance.Add(this);
+            }
+        }
+
+        public void Start()
+        {
+            if (SharpShadowManager.instance && !SharpShadowManager.instance.Contains(this))
+            {
+                SharpShadowManager.instance.Add(this);
+            }
         }
 
         public void OnDisable()
@@ -180,6 +196,7 @@ namespace ShadowVolume
                     {
                         materials = new Material[2];
                     }
+
                     materials[0] = updateStencilAlwaysMaterial;
                     materials[1] = updateStencilOnDepthPassMaterial;
                 }
@@ -189,8 +206,10 @@ namespace ShadowVolume
                     {
                         materials = new Material[1];
                     }
+
                     materials[0] = updateStencilOnDepthPassMaterial;
                 }
+
                 skinnedRenderer.sharedMaterials = materials;
             }
             else
@@ -198,9 +217,12 @@ namespace ShadowVolume
                 // Non-skinned
                 if (asset.allowCameraInShadow)
                 {
-                    Graphics.DrawMesh(asset.shadowMesh, transform.localToWorldMatrix, updateStencilAlwaysMaterial, gameObject.layer);
+                    Graphics.DrawMesh(asset.shadowMesh, transform.localToWorldMatrix, updateStencilAlwaysMaterial,
+                        gameObject.layer);
                 }
-                Graphics.DrawMesh(asset.shadowMesh, transform.localToWorldMatrix, updateStencilOnDepthPassMaterial, gameObject.layer);
+
+                Graphics.DrawMesh(asset.shadowMesh, transform.localToWorldMatrix, updateStencilOnDepthPassMaterial,
+                    gameObject.layer);
             }
         }
     }

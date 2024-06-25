@@ -57,6 +57,11 @@ namespace ShadowVolume
             shadows.Add(shadow);
         }
 
+        public bool Contains(SharpShadow shadow)
+        {
+            return shadows.Contains(shadow);
+        }
+
         public void Remove(SharpShadow shadow)
         {
             shadows.Remove(shadow);
@@ -76,12 +81,14 @@ namespace ShadowVolume
                     enableInstancing = true,
                 };
             }
+
             if (!updateStencilOnDepthPassMaterial)
             {
-                updateStencilOnDepthPassMaterial = new Material(Shader.Find("ShadowVolume/VolumeUpdateStencilOnDepthPass"))
-                {
-                    enableInstancing = true,
-                };
+                updateStencilOnDepthPassMaterial =
+                    new Material(Shader.Find("ShadowVolume/VolumeUpdateStencilOnDepthPass"))
+                    {
+                        enableInstancing = true,
+                    };
             }
 
             for (var i = 0; i < shadows.Count; i++)
