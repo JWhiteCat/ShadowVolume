@@ -30,6 +30,8 @@ public class ShadowVolumeSetting : EditorWindow
 
     private int groundLayer = 1;
 
+    private int finalLayer = 1;
+
     private string shadowVolumeTag = "Untagged";
 
     private Light dirLight = null;
@@ -183,6 +185,8 @@ public class ShadowVolumeSetting : EditorWindow
             combinedGo.transform.localEulerAngles = Vector3.zero;
             combinedGo.transform.localPosition = Vector3.zero;
 
+            combinedGo.layer = finalLayer;
+
             MeshFilter combinedMF = combinedGo.AddComponent<MeshFilter>();
             combinedMF.sharedMesh = combinedMesh;
 
@@ -309,6 +313,8 @@ public class ShadowVolumeSetting : EditorWindow
             mr.sharedMaterial = debugMtrl;
             mr.enabled = true;
 
+            newMeshGo.layer = finalLayer;
+
             svObj = newMeshGo.AddComponent<ShadowVolumeObject>();
             svObj.source = completeBakingTask.Transform.gameObject;
             svObj.sourceMeshRenderer = completeBakingTask.Transform.GetComponent<MeshRenderer>();
@@ -411,6 +417,7 @@ public class ShadowVolumeSetting : EditorWindow
         // mainCam = EditorGUILayout.ObjectField("Camera", mainCam, typeof(Camera), true) as Camera;
 
         groundLayer = EditorGUILayout.LayerField("Ground Layer", groundLayer);
+        finalLayer = EditorGUILayout.LayerField("输出mesh的layer", finalLayer);
         shadowVolumeTag = EditorGUILayout.TagField("Shadow Volume Tag", shadowVolumeTag);
 
         dirLight = EditorGUILayout.ObjectField("Directional Light", dirLight, typeof(Light), true) as Light;

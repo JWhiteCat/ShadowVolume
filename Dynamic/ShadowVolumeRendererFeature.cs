@@ -64,7 +64,7 @@ namespace ShadowVolume
                 return;
             }
 
-            if (!settings.enabled || renderingData.lightData.mainLightIndex == -1 || !stencilBufferSupported)
+            if (!settings.enabled || renderingData.lightData.mainLightIndex == -1 /* || !stencilBufferSupported */)
             {
                 return;
             }
