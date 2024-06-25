@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System;
+using ShadowVolume;
 using UnityEngine.SceneManagement;
 
 public class ShadowVolumeSetting : EditorWindow
@@ -16,7 +17,11 @@ public class ShadowVolumeSetting : EditorWindow
     private static void BakeStaticShadow()
     {
         AddMeshCollider();
+
         ShadowVolumeSetting instance = EditorWindow.GetWindow<ShadowVolumeSetting>();
+        instance.finalLayer = ShadowSettings.Instance.finalLayer;
+        instance.capsOffset = ShadowSettings.Instance.capsOffset;
+
         instance.ClearBakedData();
         instance.BakeAll();
     }
