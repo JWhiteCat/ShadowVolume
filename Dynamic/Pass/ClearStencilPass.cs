@@ -19,7 +19,7 @@ namespace ShadowVolume
         {
             base.profilingSampler = new ProfilingSampler(nameof(ClearStencilPass));
             renderPassEvent = evt;
-            
+
             tagsToRender = new List<ShaderTagId>();
             for (var i = 0; i < shaderTagsToRender.Length; i++)
             {
@@ -38,11 +38,11 @@ namespace ShadowVolume
                     return;
                 }
             }
-            
+
             var drawingSettings = CreateDrawingSettings(tagsToRender, ref renderingData, SortingCriteria.CommonOpaque);
             drawingSettings.overrideMaterial = ClearStencilMaterial;
             drawingSettings.overrideMaterialPassIndex = 0;
-            
+
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1, 1 << 7);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings,

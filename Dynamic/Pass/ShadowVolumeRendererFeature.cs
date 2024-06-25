@@ -60,7 +60,7 @@ namespace ShadowVolume
             // 这里Tag用来筛选物体，如果设为ClearStencil则没有物体走这个Pass，后续可以考虑删掉Tag
             clearStencilPass = new ClearStencilPass(RenderPassEvent.AfterRenderingOpaques + 2,
                 new string[] { "UniversalForward" });
-            
+
             multiplyPass = new MultiplyPass(RenderPassEvent.AfterRenderingOpaques + 3);
 
             // stencilBufferSupported = RenderTexture.SupportsStencil(null);
@@ -94,7 +94,7 @@ namespace ShadowVolume
             renderer.EnqueuePass(stencilPass);
 
             renderer.EnqueuePass(clearStencilPass);
-            
+
             multiplyPass.shadowIntensity = settings.shadowIntensity;
             renderer.EnqueuePass(multiplyPass);
         }
