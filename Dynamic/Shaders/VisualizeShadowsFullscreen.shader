@@ -14,6 +14,7 @@ Shader "ShadowVolume/VisualizeShadowsFullscreen"
 
         Pass
         {
+            Name "ShadowsFullscreen"
             Tags { "LightMode"="LightweightForward" }
             Stencil
             {

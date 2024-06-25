@@ -42,8 +42,12 @@ namespace ShadowVolume
         public Settings settings = new Settings();
 
         protected StencilPass stencilPass;
+
+        // 只清除RenderLayer为7的模型的Stencil
+        protected ClearStencilPass clearStencilPass;
+
         protected MultiplyPass multiplyPass;
-        protected bool stencilBufferSupported;
+        // protected bool stencilBufferSupported;
 
         public override void Create()
         {
@@ -52,9 +56,14 @@ namespace ShadowVolume
                 // "UniversalForward", "LightweightForward", "SRPDefaultUnlit",
                 "VolumeStencil"
             });
-            multiplyPass = new MultiplyPass(RenderPassEvent.AfterRenderingOpaques + 2);
 
-            stencilBufferSupported = RenderTexture.SupportsStencil(null);
+            // 这里Tag用来筛选物体，如果设为ClearStencil则没有物体走这个Pass，后续可以考虑删掉Tag
+            clearStencilPass = new ClearStencilPass(RenderPassEvent.AfterRenderingOpaques + 2,
+                new string[] { "UniversalForward" });
+            
+            multiplyPass = new MultiplyPass(RenderPassEvent.AfterRenderingOpaques + 3);
+
+            // stencilBufferSupported = RenderTexture.SupportsStencil(null);
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -84,6 +93,8 @@ namespace ShadowVolume
             // Queue passes
             renderer.EnqueuePass(stencilPass);
 
+            renderer.EnqueuePass(clearStencilPass);
+            
             multiplyPass.shadowIntensity = settings.shadowIntensity;
             renderer.EnqueuePass(multiplyPass);
         }

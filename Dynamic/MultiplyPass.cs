@@ -35,7 +35,7 @@ namespace ShadowVolume
 
             var camera = renderingData.cameraData.camera;
 
-            var cmd = CommandBufferPool.Get("SharpShadowsToolkit Multiply Pass");
+            var cmd = CommandBufferPool.Get("ShadowVolume Multiply Pass");
 
             // Visualize shadows
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
