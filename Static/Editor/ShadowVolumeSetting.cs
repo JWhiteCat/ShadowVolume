@@ -691,7 +691,8 @@ public class ShadowVolumeSetting : EditorWindow
                     if (meshRenderer != null)
                     {
                         if (meshRenderer.shadowCastingMode is UnityEngine.Rendering.ShadowCastingMode.On
-                            or UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                                or UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly &&
+                            meshRenderer.staticShadowCaster)
                         {
                             BakeAGameObject(go);
                         }

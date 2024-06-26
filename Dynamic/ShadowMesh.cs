@@ -394,6 +394,7 @@ namespace ShadowVolume
                 // https://forum.unity.com/threads/number-of-bind-poses-doesnt-match-number-of-bones-in.29871/
                 // https://forum.unity.com/threads/optmize-hierarchy-of-a-generated-skinned-mesh.340876/#post-2727944
                 result = Instantiate(reference);
+                // result = new Mesh();
             }
             
             result.name = reference.name + "_shadow_mesh";
