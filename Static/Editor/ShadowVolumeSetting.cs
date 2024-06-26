@@ -8,6 +8,7 @@ using UnityEditor.SceneManagement;
 using System;
 using ShadowVolume;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class ShadowVolumeSetting : EditorWindow
 {
@@ -130,11 +131,14 @@ public class ShadowVolumeSetting : EditorWindow
             // ShadowVolumeCameraDraw();
         }
 
-        if (bakingTaskManager.workingTasks.Count == 0 && bakingTaskManager.idleTasks.Count == 0)
+        if (bakingTaskManager.totalTasks.Count != 0)
         {
-            RemoveMeshCollider();
-            CombineAllShadowVolumesIntoOne();
-            MarkSceneAsDirty();
+            if (bakingTaskManager.popTasks.Count == bakingTaskManager.totalTasks.Count)
+            {
+                RemoveMeshCollider();
+                CombineAllShadowVolumesIntoOne();
+                MarkSceneAsDirty();
+            }
         }
     }
 
@@ -927,11 +931,11 @@ public class ShadowVolumeSetting : EditorWindow
 
         public List<ABakingTask> workingTasks = new List<ABakingTask>();
 
-        private List<ABakingTask> completeTasks = new List<ABakingTask>();
+        public List<ABakingTask> completeTasks = new List<ABakingTask>();
 
-        private List<ABakingTask> totalTasks = new List<ABakingTask>();
+        public List<ABakingTask> totalTasks = new List<ABakingTask>();
 
-        private List<ABakingTask> popTasks = new List<ABakingTask>();
+        public List<ABakingTask> popTasks = new List<ABakingTask>();
 
         private int concurrentTasks = 10;
 
