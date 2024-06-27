@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ShadowVolume
 {
@@ -32,6 +34,18 @@ namespace ShadowVolume
 
         public ShadowAsset runtimeShadowAsset;
         protected SkinnedMeshRenderer skinnedRenderer;
+
+        // private void OnApplicationQuit()
+        // {
+        //     UnityEngine.Debug.LogError("Destroying SharpShadow component");
+        //     CleanUpRuntimeShadowAsset();
+        // }
+
+        private void OnDestroy()
+        {
+            // UnityEngine.Debug.LogError("---OnDisable");
+            CleanUpRuntimeShadowAsset();
+        }
 
         public void CreateRuntimeShadowAsset(bool forceUpdate)
         {
@@ -137,7 +151,9 @@ namespace ShadowVolume
 
         public void OnEnable()
         {
-            Initialize(true);
+            if (Application.isPlaying)
+            {
+                Initialize(true);
 
 #if SHARP_SHADOWS_DEBUG
             if (!SharpShadowManager.isInitialized)
@@ -146,9 +162,10 @@ namespace ShadowVolume
             }
 #endif
 
-            if (SharpShadowManager.instance && !SharpShadowManager.instance.Contains(this))
-            {
-                SharpShadowManager.instance.Add(this);
+                if (SharpShadowManager.instance && !SharpShadowManager.instance.Contains(this))
+                {
+                    SharpShadowManager.instance.Add(this);
+                }
             }
         }
 
@@ -165,12 +182,12 @@ namespace ShadowVolume
             SharpShadowManager.instance?.Remove(this);
         }
 
-#if UNITY_EDITOR
-        public void OnValidate()
-        {
-            Initialize(true);
-        }
-#endif
+// #if UNITY_EDITOR
+//         public void OnValidate()
+//         {
+//             Initialize(true);
+//         }
+// #endif
 
         public void Render(Material updateStencilAlwaysMaterial, Material updateStencilOnDepthPassMaterial)
         {
