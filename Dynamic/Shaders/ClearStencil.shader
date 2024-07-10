@@ -24,7 +24,7 @@ Shader "ShadowVolume/ClearStencil"
                 Comp Always
                 Pass Replace
             }
-            Cull Off
+            Cull Back
             ZWrite Off
 
             HLSLPROGRAM

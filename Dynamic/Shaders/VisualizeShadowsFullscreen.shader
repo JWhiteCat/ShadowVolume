@@ -21,7 +21,7 @@ Shader "ShadowVolume/VisualizeShadowsFullscreen"
                 Comp NotEqual
                 Ref 0
             }
-            Cull Off
+            Cull Back
             ZTest Always
             ZWrite Off
             Blend SrcAlpha OneMinusSrcAlpha
