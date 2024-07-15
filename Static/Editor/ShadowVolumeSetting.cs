@@ -27,6 +27,20 @@ public class ShadowVolumeSetting : EditorWindow
         instance.BakeAll();
     }
 
+    [MenuItem("项目/ShadowVolumeDebug/禁用所有静态ShadowOnly")]
+    public static void DeActiveShadowOnly()
+    {
+        ShadowVolumeCommon.GetAndSetActiveStaticShadowOnly(false);
+        MarkSceneAsDirty();
+    }
+
+    [MenuItem("项目/ShadowVolumeDebug/激活所有静态ShadowOnly")]
+    public static void ActiveShadowOnly()
+    {
+        ShadowVolumeCommon.GetAndSetActiveStaticShadowOnly(true);
+        MarkSceneAsDirty();
+    }
+
     [MenuItem("Window/Lighting/Shadow Volume Setting")]
     private static void Init()
     {
@@ -89,7 +103,12 @@ public class ShadowVolumeSetting : EditorWindow
     {
         if (!Application.isPlaying)
         {
-            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            // EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            // 获取当前所有打开的场景
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+            {
+                EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetSceneAt(i));
+            }
         }
     }
 
@@ -657,6 +676,7 @@ public class ShadowVolumeSetting : EditorWindow
         }
     }
 
+
     private void BakeAll()
     {
         if (!CheckingBeforeBaking())
@@ -664,19 +684,10 @@ public class ShadowVolumeSetting : EditorWindow
             return;
         }
 
-        // 获取场景中的所有GameObject
-        UnityEngine.Object[] objects = GameObject.FindObjectsOfType(typeof(GameObject));
+        List<GameObject> gos = ShadowVolumeCommon.GetStaticShadowGameObjects();
+        ShadowVolumeCommon.GetAndSetActiveStaticShadowOnly(false);
 
-        // 创建一个GameObject数组，大小与Object数组相同
-        GameObject[] gos = new GameObject[objects.Length];
-
-        // 将Object数组中的每个元素转换为GameObject并存储到gos数组中
-        for (int i = 0; i < objects.Length; i++)
-        {
-            gos[i] = (GameObject)objects[i];
-        }
-
-        if (gos == null || gos.Length == 0)
+        if (gos == null || gos.Count == 0)
         {
             ShowNotification("There is not any GameObject");
         }
@@ -694,12 +705,7 @@ public class ShadowVolumeSetting : EditorWindow
                     MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
                     if (meshRenderer != null)
                     {
-                        if (meshRenderer.shadowCastingMode is UnityEngine.Rendering.ShadowCastingMode.On
-                                or UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly &&
-                            meshRenderer.staticShadowCaster)
-                        {
-                            BakeAGameObject(go);
-                        }
+                        BakeAGameObject(go);
                     }
                 }
             }
